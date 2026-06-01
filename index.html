@@ -3,38 +3,213 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestão da Igreja - IA</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; text-align: center; }
-    .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    textarea { width: 95%; height: 100px; margin-bottom: 10px; padding: 10px; border: 1px solid #ccc; border-radius: 5px;}
-    button { background: #0056b3; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;}
-    button:hover { background: #004494; }
-    #resposta { margin-top: 20px; text-align: left; white-space: pre-wrap; background: #eef; padding: 15px; border-radius: 5px; }
-  </style>
+  <title>Sistema de Gestão - Igreja</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="container">
-    <h2>Assistente Pastoral (IA)</h2>
-    <textarea id="pergunta" placeholder="Ex: Crie um cronograma para o culto de domingo..."></textarea><br>
-    <button onclick="perguntar()">Perguntar à IA</button>
-    <div id="resposta">A resposta da IA aparecerá aqui...</div>
+<body class="bg-gray-100 text-gray-800">
+
+  <nav class="bg-blue-700 text-white shadow-md">
+    <div class="max-w-6xl mx-auto flex justify-between items-center p-4">
+      <h1 class="text-xl font-bold">Gestão Igreja</h1>
+      <div class="space-x-4">
+        <button onclick="mudarAba('membros')" class="hover:underline font-semibold">Membros</button>
+        <button onclick="mudarAba('eventos')" class="hover:underline font-semibold">Eventos</button>
+        <button onclick="mudarAba('dizimos')" class="hover:underline font-semibold">Dízimos</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto p-4 mt-6">
+
+    <section id="aba-membros" class="aba">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-lg shadow">
+          <h2 class="text-lg font-bold mb-4 text-blue-700">Cadastrar Membro</h2>
+          <div class="space-y-3">
+            <input type="text" id="mem-nome" placeholder="Nome Completo" class="w-full p-2 border rounded">
+            <input type="text" id="mem-telefone" placeholder="Telefone" class="w-full p-2 border rounded">
+            <input type="text" id="mem-endereco" placeholder="Endereço" class="w-full p-2 border rounded">
+            <input type="text" id="mem-foto" placeholder="Link da Foto (URL)" class="w-full p-2 border rounded">
+            <button onclick="salvarMembro()" class="w-full bg-blue-600 text-white p-2 rounded font-bold hover:bg-blue-700">Salvar Membro</button>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow md:col-span-2">
+          <h2 class="text-lg font-bold mb-4 text-blue-700">Membros Cadastrados</h2>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b bg-gray-50">
+                  <th class="p-2">Foto</th>
+                  <th class="p-2">Nome</th>
+                  <th class="p-2">Telefone</th>
+                  <th class="p-2">Endereço</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-membros"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="aba-eventos" class="aba hidden">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-lg shadow">
+          <h2 class="text-lg font-bold mb-4 text-blue-700">Agendar Evento</h2>
+          <div class="space-y-3">
+            <input type="text" id="evt-nome" placeholder="Nome do Evento" class="w-full p-2 border rounded">
+            <input type="date" id="evt-data" class="w-full p-2 border rounded">
+            <button onclick="salvarEvento()" class="w-full bg-blue-600 text-white p-2 rounded font-bold hover:bg-blue-700">Agendar</button>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow md:col-span-2">
+          <h2 class="text-lg font-bold mb-4 text-blue-700">Próximos Eventos</h2>
+          <ul id="lista-eventos" class="divide-y divide-gray-200"></ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="aba-dizimos" class="aba hidden">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-lg shadow">
+          <h2 class="text-lg font-bold mb-4 text-blue-700">Lançar Dízimo/Oferta</h2>
+          <div class="space-y-3">
+            <input type="text" id="diz-nome" placeholder="Nome do Dizimista" class="w-full p-2 border rounded">
+            <input type="number" id="diz-valor" placeholder="Valor (R$)" class="w-full p-2 border rounded">
+            <input type="date" id="diz-data" class="w-full p-2 border rounded">
+            <button onclick="salvarDizimo()" class="w-full bg-blue-600 text-white p-2 rounded font-bold hover:bg-blue-700">Lançar</button>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow md:col-span-2">
+          <h2 class="text-lg font-bold mb-4 text-blue-700">Planilha de Entradas</h2>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b bg-gray-50">
+                  <th class="p-2">Nome</th>
+                  <th class="p-2">Valor</th>
+                  <th class="p-2">Data</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-dizimos"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </div>
+
   <script>
-    async function perguntar() {
-      const pergunta = document.getElementById('pergunta').value;
-      const respostaDiv = document.getElementById('resposta');
-      respostaDiv.innerText = "Processando resposta, aguarde...";
-      
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: pergunta })
-      });
-      
-      const data = await res.json();
-      respostaDiv.innerText = data.text || 'Erro ao processar.';
+    // Gerenciar a troca de abas na tela
+    function mudarAba(nomeAba) {
+      document.querySelectorAll('.aba').forEach(aba => aba.classList.add('hidden'));
+      document.getElementById('aba-' + nomeAba).classList.remove('hidden');
     }
+
+    // --- SISTEMA DE MEMBROS ---
+    let membros = JSON.parse(localStorage.getItem('membros')) || [];
+    function salvarMembro() {
+      const nome = document.getElementById('mem-nome').value;
+      const telefone = document.getElementById('mem-telefone').value;
+      const endereco = document.getElementById('mem-endereco').value;
+      const foto = document.getElementById('mem-foto').value || 'https://via.placeholder.com/50';
+
+      if(!nome) return alert('Digite o nome!');
+
+      membros.push({ nome, telefone, endereco, foto });
+      localStorage.setItem('membros', JSON.stringify(membros));
+      atualizarTabelaMembros();
+      
+      // Limpar campos
+      document.getElementById('mem-nome').value = '';
+      document.getElementById('mem-telefone').value = '';
+      document.getElementById('mem-endereco').value = '';
+      document.getElementById('mem-foto').value = '';
+    }
+
+    function atualizarTabelaMembros() {
+      const tabela = document.getElementById('tabela-membros');
+      tabela.innerHTML = '';
+      membros.forEach(m => {
+        tabela.innerHTML += `
+          <tr class="border-b hover:bg-gray-50">
+            <td class="p-2"><img src="${m.foto}" class="w-10 h-10 rounded-full object-cover"></td>
+            <td class="p-2 font-medium">${m.nome}</td>
+            <td class="p-2 text-gray-600">${m.telefone}</td>
+            <td class="p-2 text-gray-600">${m.endereco}</td>
+          </tr>
+        `;
+      });
+    }
+
+    // --- SISTEMA DE EVENTOS ---
+    let eventos = JSON.parse(localStorage.getItem('eventos')) || [];
+    function salvarEvento() {
+      const nome = document.getElementById('evt-nome').value;
+      const data = document.getElementById('evt-data').value;
+
+      if(!nome || !data) return alert('Preencha todos os campos!');
+
+      eventos.push({ nome, data });
+      localStorage.setItem('eventos', JSON.stringify(eventos));
+      atualizarListaEventos();
+
+      document.getElementById('evt-nome').value = '';
+      document.getElementById('evt-data').value = '';
+    }
+
+    function atualizarListaEventos() {
+      const lista = document.getElementById('lista-eventos');
+      lista.innerHTML = '';
+      eventos.sort((a,b) => new Date(a.data) - new Date(b.data)).forEach(e => {
+        const dataFormatada = new Date(e.data).toLocaleDateString('pt-BR', {timeZone: 'UTC'});
+        lista.innerHTML += `
+          <li class="py-3 flex justify-between items-center">
+            <span class="font-semibold">${e.nome}</span>
+            <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">${dataFormatada}</span>
+          </li>
+        `;
+      });
+    }
+
+    // --- SISTEMA DE DÍZIMOS ---
+    let dizimos = JSON.parse(localStorage.getItem('dizimos')) || [];
+    function salvarDizimo() {
+      const nome = document.getElementById('diz-nome').value;
+      const valor = document.getElementById('diz-valor').value;
+      const data = document.getElementById('diz-data').value;
+
+      if(!nome || !valor || !data) return alert('Preencha todos os campos!');
+
+      dizimos.push({ nome, valor: parseFloat(valor).toFixed(2), data });
+      localStorage.setItem('dizimos', JSON.stringify(dizimos));
+      atualizarTabelaDizimos();
+
+      document.getElementById('diz-nome').value = '';
+      document.getElementById('diz-valor').value = '';
+      document.getElementById('diz-data').value = '';
+    }
+
+    function atualizarTabelaDizimos() {
+      const tabela = document.getElementById('tabela-dizimos');
+      tabela.innerHTML = '';
+      dizimos.forEach(d => {
+        const dataFormatada = new Date(d.data).toLocaleDateString('pt-BR', {timeZone: 'UTC'});
+        tabela.innerHTML += `
+          <tr class="border-b hover:bg-gray-50">
+            <td class="p-2">${d.nome}</td>
+            <td class="p-2 text-green-600 font-medium">R$ ${d.valor}</td>
+            <td class="p-2 text-gray-600">${dataFormatada}</td>
+          </tr>
+        `;
+      });
+    }
+
+    // Carregar dados ao abrir o app
+    atualizarTabelaMembros();
+    atualizarListaEventos();
+    atualizarTabelaDizimos();
   </script>
 </body>
 </html>
